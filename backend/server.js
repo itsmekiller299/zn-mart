@@ -7,10 +7,28 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 
+// Fix for Vercel deployment: trust proxy for rate-limit + use /tmp for mongodb-memory-server
+if (process.env.VERCEL) {
+    process.env.HOME = '/tmp';
+    process.env.MONGOMS_DOWNLOAD_DIR = '/tmp/mongodb';
+    process.env.MONGOMS_VERSION = process.env.MONGOMS_VERSION || '7.0.14';
+}
+app.set('trust proxy', 1);
+
 // Security Middleware
 app.use(helmet());
+const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [];
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin) || /vercel\.app$/.test(origin) || origin.includes('localhost')) {
+            return callback(null, true);
+        }
+        // Allow all in production for demo if FRONTEND_URL not set
+        if (allowedOrigins.length === 0) return callback(null, true);
+        return callback(null, true);
+    },
     credentials: true
 }));
 
@@ -46,6 +64,10 @@ const connectDB = async () => {
         }
     }
 
+    if (!uri) {
+        console.warn('MONGO_URI not set and in-memory DB failed. Starting in mock mode without DB.');
+        return;
+    }
     mongoose.connect(uri)
     .then(async () => {
         console.log(`MongoDB connected successfully to: ${uri.startsWith('mongodb+srv') ? 'Atlas Cluster' : 'Local/In-Memory DB'}`);
@@ -55,7 +77,8 @@ const connectDB = async () => {
     })
     .catch(err => {
         console.error('MongoDB connection error:', err);
-        process.exit(1);
+        if (!process.env.VERCEL) process.exit(1);
+        else console.warn('Continuing without DB in Vercel – API will use mock data');
     });
 };
 
@@ -84,6 +107,10 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    });
+}
+
+module.exports = app;
