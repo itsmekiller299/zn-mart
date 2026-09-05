@@ -48,6 +48,13 @@ app.use(express.urlencoded({ extended: true }));
 const connectDB = async () => {
     let uri = process.env.MONGO_URI;
     
+    // Vercel: if no MONGO_URI, use mock data (serverless memory DB is per-invocation, not persistent)
+    if (process.env.VERCEL && (!uri || uri.includes('localhost') || uri === 'your_mongodb_connection_string')) {
+        console.log('Vercel detected without MONGO_URI – using mock DB mode (no mongoose connection)');
+        global.USE_MOCK_DB = true;
+        return;
+    }
+
     // Check if we should use in-memory DB (if no external URI or if it's the default local URI)
     const isLocalDefault = uri && (uri.includes('localhost') || uri.includes('127.0.0.1'));
     const isMissing = !uri || uri === 'your_mongodb_connection_string';
@@ -66,6 +73,7 @@ const connectDB = async () => {
 
     if (!uri) {
         console.warn('MONGO_URI not set and in-memory DB failed. Starting in mock mode without DB.');
+        global.USE_MOCK_DB = true;
         return;
     }
     mongoose.connect(uri)
@@ -78,7 +86,10 @@ const connectDB = async () => {
     .catch(err => {
         console.error('MongoDB connection error:', err);
         if (!process.env.VERCEL) process.exit(1);
-        else console.warn('Continuing without DB in Vercel – API will use mock data');
+        else {
+            console.warn('Continuing without DB in Vercel – API will use mock data');
+            global.USE_MOCK_DB = true;
+        }
     });
 };
 

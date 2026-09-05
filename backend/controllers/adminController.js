@@ -1,11 +1,16 @@
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
+const mongoose = require('mongoose');
+const mockData = require('../utils/mockData');
 
 // @desc Get all orders (admin)
 // @route GET /api/orders
 exports.getAllOrders = async (req, res, next) => {
   try {
+    if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
+      return res.status(200).json({ success: true, count: 0, data: [] });
+    }
     const orders = await Order.find().populate('user', 'name email').populate('items.product', 'name').sort('-createdAt');
     res.status(200).json({ success: true, count: orders.length, data: orders });
   } catch (err) { next(err); }
@@ -28,6 +33,14 @@ exports.updateOrderStatus = async (req, res, next) => {
 // @desc Get all users/customers (admin)
 exports.getAllUsers = async (req, res, next) => {
   try {
+    if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
+      const mockUsers = [
+        { _id: 'mock_admin_id', name: 'Admin User', email: 'admin@znmart.com', role: 'admin', createdAt: new Date().toISOString() },
+        { _id: 'mock_user1', name: 'Rahul Sharma', email: 'rahul@example.com', role: 'user', createdAt: new Date().toISOString() },
+        { _id: 'mock_user2', name: 'Priya Mehta', email: 'priya@example.com', role: 'user', createdAt: new Date().toISOString() },
+      ];
+      return res.status(200).json({ success: true, count: mockUsers.length, data: mockUsers });
+    }
     const users = await User.find().select('-password').sort('-createdAt');
     res.status(200).json({ success: true, count: users.length, data: users });
   } catch (err) { next(err); }
@@ -36,6 +49,9 @@ exports.getAllUsers = async (req, res, next) => {
 // @desc Get customer service stats (admin)
 exports.getCustomerStats = async (req, res, next) => {
   try {
+    if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
+      return res.status(200).json({ success: true, data: { totalCustomers: 2, totalOrders: 5, pendingOrders: 2, deliveredOrders: 3, totalProducts: mockData.products.length, openTickets: 2 } });
+    }
     const totalCustomers = await User.countDocuments({ role: 'user' });
     const totalOrders = await Order.countDocuments();
     const pendingOrders = await Order.countDocuments({ status: 'Processing' });
