@@ -1,0 +1,25 @@
+{
+  "name": "zn-mart-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "preinstall": "npx npm-force-resolutions",
+    "dev:backend": "npm run dev --workspace=zn-mart-backend",
+    "dev:frontend": "npm run dev --workspace=zn-mart-frontend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+  },
+  "overrides": {
+    "tar": "^7.5.15"
+  },
+  "resolutions": {
+    "tar": "^7.5.15"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "npm-force-resolutions": "^0.0.10"
+  }
+}
