@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const app = express();
 
@@ -16,33 +19,72 @@ if (process.env.VERCEL) {
 app.set('trust proxy', 1);
 
 // Security Middleware
-app.use(helmet());
-const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [];
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            baseUri: ["'self'"],
+            fontSrc: ["'self'", "https:", "data:"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:", "https://res.cloudinary.com", "https://via.placeholder.com"],
+            connectSrc: ["'self'", process.env.FRONTEND_URL || "http://localhost:5173", "https://*.vercel.app"],
+            frameAncestors: ["'self'"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
+        }
+    },
+    crossOriginEmbedderPolicy: false,
+}));
+// Warn if JWT_SECRET is weak in production
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'zn_mart_super_secret_dev_key_2026')) {
+    console.warn('WARNING: JWT_SECRET is not set or is default value – set a strong secret in production!');
+}
+const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, process.env.FRONTEND_URL.replace('localhost','127.0.0.1')] : [];
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, curl)
+        // Allow requests with no origin (mobile apps, curl, Postman)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin) || /vercel\.app$/.test(origin) || origin.includes('localhost')) {
-            return callback(null, true);
+        const isLocal = origin.includes('localhost') || origin.includes('127.0.0.1');
+        const isAllowed = allowedOrigins.includes(origin) || /vercel\.app$/.test(origin) || isLocal;
+        if (isAllowed) return callback(null, true);
+        if (allowedOrigins.length === 0) {
+            // Demo mode: allow localhost/vercel only, reject others
+            if (isLocal || /vercel\.app$/.test(origin)) return callback(null, true);
+            return callback(new Error('Not allowed by CORS'));
         }
-        // Allow all in production for demo if FRONTEND_URL not set
-        if (allowedOrigins.length === 0) return callback(null, true);
-        return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
     },
     credentials: true
 }));
+
+// Body parser (limit size to prevent DoS)
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// Data sanitization against NoSQL injection & XSS
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp({ whitelist: ['sort','page','limit','category','keyword','select'] }));
 
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again after 15 minutes'
+    message: 'Too many requests from this IP, please try again after 15 minutes',
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 app.use('/api', limiter);
-
-// Body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Stricter limit for auth routes (brute-force protection)
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: 'Too many auth attempts, please try again after 15 minutes',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/auth', authLimiter);
 
 // Database connection
 const connectDB = async () => {

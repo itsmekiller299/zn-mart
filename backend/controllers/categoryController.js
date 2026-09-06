@@ -22,6 +22,18 @@ exports.getCategories = async (req, res, next) => {
 // @access  Private/Admin
 exports.createCategory = async (req, res, next) => {
     try {
+        if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
+            const newCat = {
+                _id: new mongoose.Types.ObjectId().toString(),
+                name: req.body.name,
+                description: req.body.description,
+                image: req.body.image || { url: '/images/product1.png', public_id: `mock_cat_${Date.now()}` },
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            mockData.categories.push(newCat);
+            return res.status(201).json({ success: true, data: newCat });
+        }
         const category = await Category.create(req.body);
         res.status(201).json({ success: true, data: category });
     } catch (err) {

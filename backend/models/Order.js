@@ -39,12 +39,20 @@ const orderSchema = new mongoose.Schema({
         zipCode: { type: String, required: true },
         country: { type: String, required: true }
     },
+    paymentMethod: {
+        type: String,
+        enum: ['card', 'cod'],
+        default: 'card',
+        required: true
+    },
     paymentInfo: {
         id: {
             type: String
         },
         status: {
-            type: String
+            type: String,
+            enum: ['paid', 'pending', 'unpaid', 'failed'],
+            default: 'pending'
         }
     },
     taxPrice: {
@@ -61,6 +69,13 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true,
         default: 0.0
+    },
+    isPaid: {
+        type: Boolean,
+        default: false
+    },
+    paidAt: {
+        type: Date
     },
     status: {
         type: String,

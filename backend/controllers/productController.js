@@ -114,6 +114,31 @@ exports.getProduct = async (req, res, next) => {
 // @access  Private/Admin
 exports.createProduct = async (req, res, next) => {
     try {
+        // Mock fallback: persist to in-memory mockData when no DB
+        if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
+            const newId = new mongoose.Types.ObjectId().toString();
+            // Resolve category object for consistent frontend display
+            let categoryObj = req.body.category;
+            if (typeof req.body.category === 'string') {
+                const found = mockData.categories.find(c => c._id === req.body.category);
+                categoryObj = found || { _id: req.body.category, name: 'Uncategorized' };
+            }
+            const newProduct = {
+                _id: newId,
+                name: req.body.name,
+                description: req.body.description,
+                price: req.body.price,
+                category: categoryObj,
+                stock: req.body.stock,
+                ratings: 0,
+                numOfReviews: 0,
+                images: req.body.images || [{ url: req.body.imageUrl || '/images/product1.png', public_id: `mock_${Date.now()}` }],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            mockData.products.unshift(newProduct);
+            return res.status(201).json({ success: true, data: newProduct });
+        }
         const product = await Product.create(req.body);
         res.status(201).json({ success: true, data: product });
     } catch (err) {
@@ -126,6 +151,21 @@ exports.createProduct = async (req, res, next) => {
 // @access  Private/Admin
 exports.updateProduct = async (req, res, next) => {
     try {
+        if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
+            const idx = mockData.products.findIndex(p => p._id === req.params.id);
+            if (idx === -1) {
+                return res.status(404).json({ success: false, message: `Product not found with id of ${req.params.id}` });
+            }
+            let categoryObj = req.body.category;
+            if (req.body.category && typeof req.body.category === 'string') {
+                const found = mockData.categories.find(c => c._id === req.body.category);
+                if (found) categoryObj = found;
+            }
+            const updated = { ...mockData.products[idx], ...req.body, updatedAt: new Date().toISOString() };
+            if (categoryObj) updated.category = categoryObj;
+            mockData.products[idx] = updated;
+            return res.status(200).json({ success: true, data: updated });
+        }
         let product = await Product.findById(req.params.id);
 
         if (!product) {
@@ -148,6 +188,14 @@ exports.updateProduct = async (req, res, next) => {
 // @access  Private/Admin
 exports.deleteProduct = async (req, res, next) => {
     try {
+        if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
+            const idx = mockData.products.findIndex(p => p._id === req.params.id);
+            if (idx === -1) {
+                return res.status(404).json({ success: false, message: `Product not found with id of ${req.params.id}` });
+            }
+            mockData.products.splice(idx, 1);
+            return res.status(200).json({ success: true, data: {} });
+        }
         const product = await Product.findById(req.params.id);
 
         if (!product) {
