@@ -15,6 +15,10 @@ const FIXED_IDS = {
     new mongoose.Types.ObjectId('000000000000000000000016'), // Kids
     new mongoose.Types.ObjectId('000000000000000000000017'), // Mens Accessories
     new mongoose.Types.ObjectId('000000000000000000000018'), // Womens Accessories
+    new mongoose.Types.ObjectId('000000000000000000000019'), // Mens Upper Wear
+    new mongoose.Types.ObjectId('00000000000000000000001a'), // Mens Bottom Wear
+    new mongoose.Types.ObjectId('00000000000000000000001b'), // Womens Upper Wear
+    new mongoose.Types.ObjectId('00000000000000000000001c'), // Womens Bottom Wear
   ],
   products: [
     new mongoose.Types.ObjectId('000000000000000000000101'),
@@ -26,7 +30,7 @@ const FIXED_IDS = {
 
 const seedData = async () => {
   try {
-    // Ensure all 8 categories exist (Fashion expanded to Mens/Womens/Kids + Accessories)
+    // Ensure all 12 categories exist (Mens/Womens split to Upper/Bottom Wear)
     const catCount = await Category.countDocuments();
     let categories;
     if (catCount === 0) {
@@ -39,12 +43,16 @@ const seedData = async () => {
         { _id: FIXED_IDS.categories[4], name: 'Womens', description: 'Womens fashion - dresses, tops, sarees', image: { url: '/images/product2.png', public_id: 'cat_womens' } },
         { _id: FIXED_IDS.categories[5], name: 'Kids', description: 'Kids fashion - boys & girls collection', image: { url: '/images/product3.png', public_id: 'cat_kids' } },
         { _id: FIXED_IDS.categories[6], name: 'Mens Accessories', description: 'Watches, belts, wallets for men', image: { url: '/images/product1.png', public_id: 'cat_mens_acc' } },
-        { _id: FIXED_IDS.categories[7], name: 'Womens Accessories', description: 'Bags, jewellery, scarves for women', image: { url: '/images/product3.png', public_id: 'cat_womens_acc' } }
+        { _id: FIXED_IDS.categories[7], name: 'Womens Accessories', description: 'Bags, jewellery, scarves for women', image: { url: '/images/product3.png', public_id: 'cat_womens_acc' } },
+        { _id: FIXED_IDS.categories[8], name: 'Mens Upper Wear', description: 'Shirts, t-shirts, kurtas for men', image: { url: '/images/product2.png', public_id: 'cat_mens_upper' } },
+        { _id: FIXED_IDS.categories[9], name: 'Mens Bottom Wear', description: 'Jeans, trousers, shorts for men', image: { url: '/images/product2.png', public_id: 'cat_mens_bottom' } },
+        { _id: FIXED_IDS.categories[10], name: 'Womens Upper Wear', description: 'Tops, kurtis, shirts for women', image: { url: '/images/product2.png', public_id: 'cat_womens_upper' } },
+        { _id: FIXED_IDS.categories[11], name: 'Womens Bottom Wear', description: 'Jeans, palazzos, leggings for women', image: { url: '/images/product3.png', public_id: 'cat_womens_bottom' } }
       ]);
     } else {
-      // Add missing new categories if DB has old 3-category data
-      const names = ['Electronics','Fashion','Home & Garden','Mens','Womens','Kids','Mens Accessories','Womens Accessories'];
-      const descs = ['Gadgets and gizmos','Trendy apparel','Everything for your home','Mens fashion - shirts, pants, t-shirts','Womens fashion - dresses, tops, sarees','Kids fashion - boys & girls collection','Watches, belts, wallets for men','Bags, jewellery, scarves for women'];
+      // Add missing new categories if DB has old data
+      const names = ['Electronics','Fashion','Home & Garden','Mens','Womens','Kids','Mens Accessories','Womens Accessories','Mens Upper Wear','Mens Bottom Wear','Womens Upper Wear','Womens Bottom Wear'];
+      const descs = ['Gadgets and gizmos','Trendy apparel','Everything for your home','Mens fashion - shirts, pants, t-shirts','Womens fashion - dresses, tops, sarees','Kids fashion - boys & girls collection','Watches, belts, wallets for men','Bags, jewellery, scarves for women','Shirts, t-shirts, kurtas for men','Jeans, trousers, shorts for men','Tops, kurtis, shirts for women','Jeans, palazzos, leggings for women'];
       for (let i = 0; i < FIXED_IDS.categories.length; i++) {
         const exists = await Category.findById(FIXED_IDS.categories[i]);
         if (!exists) {

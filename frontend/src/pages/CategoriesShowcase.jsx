@@ -20,6 +20,10 @@ const categoryBanners = {
   Kids: 'from-yellow-500 to-orange-600',
   'Mens Accessories': 'from-slate-600 to-gray-800',
   'Womens Accessories': 'from-purple-500 to-pink-500',
+  'Mens Upper Wear': 'from-sky-500 to-blue-700',
+  'Mens Bottom Wear': 'from-cyan-600 to-teal-700',
+  'Womens Upper Wear': 'from-pink-400 to-purple-600',
+  'Womens Bottom Wear': 'from-rose-500 to-pink-700',
 };
 
 const categoryIcons = {
@@ -31,6 +35,10 @@ const categoryIcons = {
   Kids: '👶',
   'Mens Accessories': '⌚',
   'Womens Accessories': '👜',
+  'Mens Upper Wear': '👕',
+  'Mens Bottom Wear': '👖',
+  'Womens Upper Wear': '👚',
+  'Womens Bottom Wear': '👖',
 };
 
 const CategoriesShowcase = () => {
