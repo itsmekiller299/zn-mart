@@ -64,14 +64,28 @@ exports.updateOrderStatus = async (req, res, next) => {
     if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
       const mockOrdersStore = require('../utils/mockOrdersStore');
       const all = mockOrdersStore.getAll();
-      const order = all.find(o => String(o._id) === String(req.params.id));
-      if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
-      order.status = status;
-      if (status === 'Delivered') order.deliveredAt = new Date().toISOString();
-      mockOrdersStore.save(all);
+      let order = all.find(o => String(o._id) === String(req.params.id));
+      // If not found in this container (serverless), create a mock order for email demo
+      if (!order) {
+        order = {
+          _id: req.params.id,
+          userEmail: req.body.email || 'customer@example.com',
+          userName: 'Customer',
+          shippingAddress: { email: req.body.email, phone: req.body.phone },
+          totalPrice: 0,
+          status,
+          items: [],
+          paymentMethod: 'cod'
+        };
+        console.log(`Mock order ${req.params.id} not in this container, using fallback for email`);
+      } else {
+        order.status = status;
+        if (status === 'Delivered') order.deliveredAt = new Date().toISOString();
+        mockOrdersStore.save(all);
+      }
       // Send email to customer
-      const email = order.userEmail || order.shippingAddress?.email || order.user?.email;
-      const phone = order.shippingAddress?.phone;
+      const email = order.userEmail || order.shippingAddress?.email || order.user?.email || req.body.email;
+      const phone = order.shippingAddress?.phone || req.body.phone;
       const name = order.userName || order.user?.name || 'Customer';
       if (email) sendAdminConfirmation(order, email, name, phone).catch(() => {});
       return res.status(200).json({ success: true, data: order, emailSent: !!email });
@@ -95,10 +109,24 @@ exports.confirmOrder = async (req, res, next) => {
     if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
       const mockOrdersStore = require('../utils/mockOrdersStore');
       const all = mockOrdersStore.getAll();
-      const order = all.find(o => String(o._id) === String(req.params.id));
-      if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
-      order.status = 'Processing';
-      mockOrdersStore.save(all);
+      let order = all.find(o => String(o._id) === String(req.params.id));
+      if (!order) {
+        // Fallback for serverless: order not in this container, create mock for email
+        order = {
+          _id: req.params.id,
+          userEmail: email,
+          userName: 'Customer',
+          shippingAddress: { email, phone },
+          totalPrice: 0,
+          status: 'Processing',
+          items: [],
+          paymentMethod: 'cod'
+        };
+        console.log(`Mock order ${req.params.id} not in container, fallback email to ${email}`);
+      } else {
+        order.status = 'Processing';
+        mockOrdersStore.save(all);
+      }
       const toEmail = email || order.userEmail || order.shippingAddress?.email || order.user?.email;
       const toPhone = phone || order.shippingAddress?.phone;
       const toName = order.userName || order.user?.name || 'Customer';
