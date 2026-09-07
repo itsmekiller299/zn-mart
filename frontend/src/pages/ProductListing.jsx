@@ -89,14 +89,28 @@ const ProductListing = () => {
             <div>
               <h3 className="font-semibold mb-3 text-gray-800">Categories</h3>
               <div className="space-y-2 text-gray-600">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer font-medium">
                   <input type="radio" name="category" value="" checked={selectedCategory === ''} onChange={() => setSelectedCategory('')} className="text-primary" /> All
                 </label>
-                {(categories || []).map((cat) => (
-                  <label key={cat._id} className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="category" value={cat._id} checked={selectedCategory === cat._id} onChange={() => setSelectedCategory(cat._id)} className="text-primary" /> {cat.name}
-                  </label>
-                ))}
+                {(categories || []).filter(c => !c.parent).map((main) => {
+                  const subs = (categories || []).filter(s => String(s.parent) === String(main._id));
+                  return (
+                    <div key={main._id} className="space-y-1">
+                      <label className="flex items-center gap-2 cursor-pointer font-semibold text-gray-800">
+                        <input type="radio" name="category" value={main._id} checked={selectedCategory === main._id} onChange={() => setSelectedCategory(main._id)} className="text-primary" /> {main.name}
+                      </label>
+                      {subs.length > 0 && (
+                        <div className="ml-6 space-y-1 border-l-2 border-primary/10 pl-3">
+                          {subs.map((sub) => (
+                            <label key={sub._id} className="flex items-center gap-2 cursor-pointer text-sm">
+                              <input type="radio" name="category" value={sub._id} checked={selectedCategory === sub._id} onChange={() => setSelectedCategory(sub._id)} className="text-primary w-3 h-3" /> {sub.name}
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <div>

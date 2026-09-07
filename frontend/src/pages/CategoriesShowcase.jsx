@@ -67,9 +67,15 @@ const CategoriesShowcase = () => {
     return acc;
   }, {});
 
+  // Separate main vs subcategories: Fashion is main with 9 subs
+  const mainCategories = (categories || []).filter((c) => !c.parent);
+  const subCategories = (categories || []).filter((c) => c.parent);
+  const fashionId = (categories || []).find((c) => c.name === 'Fashion')?._id;
+  const fashionSubs = subCategories.filter((c) => String(c.parent) === String(fashionId));
+
   const filteredCategories =
     activeCategory === 'all'
-      ? categories
+      ? mainCategories
       : categories.filter((c) => String(c._id) === String(activeCategory));
 
   const totalProducts = products.length;
@@ -108,7 +114,7 @@ const CategoriesShowcase = () => {
         </div>
       </section>
 
-      {/* Category Filter Pills */}
+      {/* Category Filter Pills - Main + Fashion subs */}
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => setActiveCategory('all')}
@@ -120,7 +126,7 @@ const CategoriesShowcase = () => {
         >
           All Categories
         </button>
-        {(categories || []).map((cat) => (
+        {mainCategories.map((cat) => (
           <button
             key={cat._id}
             onClick={() => setActiveCategory(cat._id)}
@@ -137,8 +143,22 @@ const CategoriesShowcase = () => {
                 activeCategory === cat._id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
               }`}
             >
-              {productsByCategory[cat._id]?.length || 0}
+              {cat.name === 'Fashion' ? fashionSubs.length + ' subs' : productsByCategory[cat._id]?.length || 0}
             </span>
+          </button>
+        ))}
+        {/* Fashion subcategories as secondary pills when Fashion active or All */}
+        {(activeCategory === 'all' || activeCategory === fashionId) && fashionSubs.map((sub) => (
+          <button
+            key={sub._id}
+            onClick={() => setActiveCategory(sub._id)}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${
+              activeCategory === sub._id
+                ? 'bg-fuchsia-500 text-white border-fuchsia-500'
+                : 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200 hover:border-fuchsia-500'
+            }`}
+          >
+            <span>{categoryIcons[sub.name] || '•'}</span>{sub.name}
           </button>
         ))}
         <Link
@@ -176,8 +196,17 @@ const CategoriesShowcase = () => {
                 )}
               </div>
               <div className="p-6 flex flex-col flex-grow">
-                <h3 className="text-xl font-bold text-gray-900">{cat.name}</h3>
+                <h3 className="text-xl font-bold text-gray-900">{cat.name} {cat.name === 'Fashion' && <span className="text-xs font-bold bg-fuchsia-100 text-fuchsia-700 px-2 py-0.5 rounded-full ml-2">Main • {fashionSubs.length} subs</span>}</h3>
                 <p className="text-gray-500 text-sm mt-1 line-clamp-2 flex-grow">{cat.description}</p>
+                {cat.name === 'Fashion' && (
+                  <div className="mt-3 grid grid-cols-2 gap-1.5">
+                    {fashionSubs.map((sub) => (
+                      <button key={sub._id} onClick={() => setActiveCategory(sub._id)} className="text-xs bg-fuchsia-50 text-fuchsia-700 px-2 py-1.5 rounded-full border border-fuchsia-200 hover:bg-fuchsia-500 hover:text-white flex items-center gap-1 justify-center transition-colors">
+                        <span>{categoryIcons[sub.name] || '•'}</span> {sub.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-2 mt-5">
                   <Link
                     to={`/products?category=${cat._id}`}

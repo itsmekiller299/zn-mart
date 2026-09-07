@@ -1,16 +1,18 @@
 const categories = [
-  { _id: '6a9b8882c4a92a5ddf7d5efd', name: 'Electronics', description: 'Gadgets and gizmos', image: { url: '/images/product1.png', public_id: 'cat1' } },
-  { _id: '6a9b8882c4a92a5ddf7d5efe', name: 'Fashion', description: 'Trendy apparel', image: { url: '/images/product2.png', public_id: 'cat2' } },
-  { _id: '6a9b8882c4a92a5ddf7d5eff', name: 'Home & Garden', description: 'Everything for your home', image: { url: '/images/product3.png', public_id: 'cat3' } },
-  { _id: '6a9b8882c4a92a5ddf7d5f10', name: 'Mens', description: 'Mens fashion - shirts, pants, t-shirts', image: { url: '/images/product2.png', public_id: 'cat_mens' } },
-  { _id: '6a9b8882c4a92a5ddf7d5f11', name: 'Womens', description: 'Womens fashion - dresses, tops, sarees', image: { url: '/images/product2.png', public_id: 'cat_womens' } },
-  { _id: '6a9b8882c4a92a5ddf7d5f12', name: 'Kids', description: 'Kids fashion - boys & girls collection', image: { url: '/images/product3.png', public_id: 'cat_kids' } },
-  { _id: '6a9b8882c4a92a5ddf7d5f13', name: 'Mens Accessories', description: 'Watches, belts, wallets for men', image: { url: '/images/product1.png', public_id: 'cat_mens_acc' } },
-  { _id: '6a9b8882c4a92a5ddf7d5f14', name: 'Womens Accessories', description: 'Bags, jewellery, scarves for women', image: { url: '/images/product3.png', public_id: 'cat_womens_acc' } },
-  { _id: '6a9b8882c4a92a5ddf7d5f15', name: 'Mens Upper Wear', description: 'Shirts, t-shirts, kurtas for men', image: { url: '/images/product2.png', public_id: 'cat_mens_upper' } },
-  { _id: '6a9b8882c4a92a5ddf7d5f16', name: 'Mens Bottom Wear', description: 'Jeans, trousers, shorts for men', image: { url: '/images/product2.png', public_id: 'cat_mens_bottom' } },
-  { _id: '6a9b8882c4a92a5ddf7d5f17', name: 'Womens Upper Wear', description: 'Tops, kurtis, shirts for women', image: { url: '/images/product2.png', public_id: 'cat_womens_upper' } },
-  { _id: '6a9b8882c4a92a5ddf7d5f18', name: 'Womens Bottom Wear', description: 'Jeans, palazzos, leggings for women', image: { url: '/images/product3.png', public_id: 'cat_womens_bottom' } },
+  // Main categories
+  { _id: '6a9b8882c4a92a5ddf7d5efd', name: 'Electronics', description: 'Gadgets and gizmos', image: { url: '/images/product1.png', public_id: 'cat1' }, parent: null },
+  { _id: '6a9b8882c4a92a5ddf7d5efe', name: 'Fashion', description: 'Trendy apparel - Main', image: { url: '/images/product2.png', public_id: 'cat2' }, parent: null },
+  { _id: '6a9b8882c4a92a5ddf7d5eff', name: 'Home & Garden', description: 'Everything for your home', image: { url: '/images/product3.png', public_id: 'cat3' }, parent: null },
+  // Subcategories under Fashion
+  { _id: '6a9b8882c4a92a5ddf7d5f10', name: 'Mens', description: 'Mens fashion - shirts, pants, t-shirts', image: { url: '/images/product2.png', public_id: 'cat_mens' }, parent: '6a9b8882c4a92a5ddf7d5efe' },
+  { _id: '6a9b8882c4a92a5ddf7d5f11', name: 'Womens', description: 'Womens fashion - dresses, tops, sarees', image: { url: '/images/product2.png', public_id: 'cat_womens' }, parent: '6a9b8882c4a92a5ddf7d5efe' },
+  { _id: '6a9b8882c4a92a5ddf7d5f12', name: 'Kids', description: 'Kids fashion - boys & girls collection', image: { url: '/images/product3.png', public_id: 'cat_kids' }, parent: '6a9b8882c4a92a5ddf7d5efe' },
+  { _id: '6a9b8882c4a92a5ddf7d5f13', name: 'Mens Accessories', description: 'Watches, belts, wallets for men', image: { url: '/images/product1.png', public_id: 'cat_mens_acc' }, parent: '6a9b8882c4a92a5ddf7d5efe' },
+  { _id: '6a9b8882c4a92a5ddf7d5f14', name: 'Womens Accessories', description: 'Bags, jewellery, scarves for women', image: { url: '/images/product3.png', public_id: 'cat_womens_acc' }, parent: '6a9b8882c4a92a5ddf7d5efe' },
+  { _id: '6a9b8882c4a92a5ddf7d5f15', name: 'Mens Upper Wear', description: 'Shirts, t-shirts, kurtas for men', image: { url: '/images/product2.png', public_id: 'cat_mens_upper' }, parent: '6a9b8882c4a92a5ddf7d5efe' },
+  { _id: '6a9b8882c4a92a5ddf7d5f16', name: 'Mens Bottom Wear', description: 'Jeans, trousers, shorts for men', image: { url: '/images/product2.png', public_id: 'cat_mens_bottom' }, parent: '6a9b8882c4a92a5ddf7d5efe' },
+  { _id: '6a9b8882c4a92a5ddf7d5f17', name: 'Womens Upper Wear', description: 'Tops, kurtis, shirts for women', image: { url: '/images/product2.png', public_id: 'cat_womens_upper' }, parent: '6a9b8882c4a92a5ddf7d5efe' },
+  { _id: '6a9b8882c4a92a5ddf7d5f18', name: 'Womens Bottom Wear', description: 'Jeans, palazzos, leggings for women', image: { url: '/images/product3.png', public_id: 'cat_womens_bottom' }, parent: '6a9b8882c4a92a5ddf7d5efe' },
 ];
 
 const products = [

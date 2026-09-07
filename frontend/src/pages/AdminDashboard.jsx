@@ -270,7 +270,20 @@ const AdminDashboard = () => {
               <p className="text-xs text-gray-500 mb-4">Add new items instantly – live inventory update</p>
               <form onSubmit={handleProductSubmit} className="space-y-4">
                 <div><label className="text-xs font-bold text-gray-700">Product Name</label><input name="name" value={productForm.name} onChange={handleProductChange} placeholder="e.g. Wireless Earbuds Pro" required className="w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-primary outline-none" /></div>
-                <div><label className="text-xs font-bold text-gray-700">Category</label><select name="category" value={productForm.category} onChange={handleProductChange} required className="w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50"><option value="">Select</option>{categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}</select></div>
+                <div><label className="text-xs font-bold text-gray-700">Category</label><select name="category" value={productForm.category} onChange={handleProductChange} required className="w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50">
+                  <option value="">Select</option>
+                  {categories.filter(c => !c.parent).map((main) => {
+                    const subs = categories.filter(s => String(s.parent) === String(main._id));
+                    return subs.length ? (
+                      <optgroup key={main._id} label={`${main.name} (Main)`}>
+                        <option value={main._id}>{main.name} - Main</option>
+                        {subs.map((sub) => <option key={sub._id} value={sub._id}>└ {sub.name}</option>)}
+                      </optgroup>
+                    ) : (
+                      <option key={main._id} value={main._id}>{main.name}</option>
+                    );
+                  })}
+                </select></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="text-xs font-bold text-gray-700">Price ($)</label><input name="price" type="number" step="0.01" value={productForm.price} onChange={handleProductChange} required className="w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50" /></div>
                   <div><label className="text-xs font-bold text-gray-700">Stock</label><input name="stock" type="number" value={productForm.stock} onChange={handleProductChange} required className="w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50" /></div>
