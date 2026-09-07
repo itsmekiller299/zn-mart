@@ -15,12 +15,22 @@ const categoryBanners = {
   Electronics: 'from-violet-600 to-indigo-600',
   Fashion: 'from-fuchsia-500 to-pink-600',
   'Home & Garden': 'from-emerald-500 to-teal-600',
+  Mens: 'from-blue-500 to-cyan-600',
+  Womens: 'from-pink-500 to-rose-600',
+  Kids: 'from-yellow-500 to-orange-600',
+  'Mens Accessories': 'from-slate-600 to-gray-800',
+  'Womens Accessories': 'from-purple-500 to-pink-500',
 };
 
 const categoryIcons = {
   Electronics: '🎧',
   Fashion: '👗',
   'Home & Garden': '🏡',
+  Mens: '👔',
+  Womens: '👚',
+  Kids: '👶',
+  'Mens Accessories': '⌚',
+  'Womens Accessories': '👜',
 };
 
 const CategoriesShowcase = () => {

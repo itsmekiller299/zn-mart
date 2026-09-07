@@ -2,6 +2,11 @@ const categories = [
   { _id: '6a9b8882c4a92a5ddf7d5efd', name: 'Electronics', description: 'Gadgets and gizmos', image: { url: '/images/product1.png', public_id: 'cat1' } },
   { _id: '6a9b8882c4a92a5ddf7d5efe', name: 'Fashion', description: 'Trendy apparel', image: { url: '/images/product2.png', public_id: 'cat2' } },
   { _id: '6a9b8882c4a92a5ddf7d5eff', name: 'Home & Garden', description: 'Everything for your home', image: { url: '/images/product3.png', public_id: 'cat3' } },
+  { _id: '6a9b8882c4a92a5ddf7d5f10', name: 'Mens', description: 'Mens fashion - shirts, pants, t-shirts', image: { url: '/images/product2.png', public_id: 'cat_mens' } },
+  { _id: '6a9b8882c4a92a5ddf7d5f11', name: 'Womens', description: 'Womens fashion - dresses, tops, sarees', image: { url: '/images/product2.png', public_id: 'cat_womens' } },
+  { _id: '6a9b8882c4a92a5ddf7d5f12', name: 'Kids', description: 'Kids fashion - boys & girls collection', image: { url: '/images/product3.png', public_id: 'cat_kids' } },
+  { _id: '6a9b8882c4a92a5ddf7d5f13', name: 'Mens Accessories', description: 'Watches, belts, wallets for men', image: { url: '/images/product1.png', public_id: 'cat_mens_acc' } },
+  { _id: '6a9b8882c4a92a5ddf7d5f14', name: 'Womens Accessories', description: 'Bags, jewellery, scarves for women', image: { url: '/images/product3.png', public_id: 'cat_womens_acc' } },
 ];
 
 const products = [
