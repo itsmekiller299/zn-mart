@@ -169,15 +169,15 @@ const Checkout = () => {
                <label className="flex items-center gap-3 cursor-pointer">
                  <input type="radio" name="payment" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="w-5 h-5 text-green-600 focus:ring-green-500" />
                  <Banknote size={20} className="text-green-600" />
-                 <span className="font-medium text-lg">Cash on Delivery (COD)</span>
-                 <span className="ml-auto text-xs bg-green-100 text-green-700 border border-green-200 px-2 py-1 rounded-full">Pay at doorstep</span>
+                  <span className="font-medium text-lg">Cash on Delivery (COD)</span>
+                  <span className="ml-auto text-xs bg-green-100 text-green-700 border border-green-200 px-2 py-1 rounded-full">✓ Free COD - Pay at doorstep</span>
                </label>
                {paymentMethod === 'cod' && (
                  <div className="mt-4 pl-8">
                    <div className="bg-white border border-green-200 rounded-lg p-3 text-sm text-gray-700">
-                     <p className="font-medium text-green-700 mb-1">✓ Pay with cash when your order arrives.</p>
-                     <p className="text-xs text-gray-500">No advance payment needed. Our delivery partner will collect <span className="font-bold">₹{calculateTotal()}</span> on delivery. Please keep exact amount ready.</p>
-                     <p className="text-xs text-gray-400 mt-2">• Delivery in 3-5 days • Free shipping • Easy returns</p>
+                      <p className="font-medium text-green-700 mb-1">✓ Pay with cash when your order arrives - No extra charges.</p>
+                      <p className="text-xs text-gray-500">No advance payment needed. Our delivery partner will collect <span className="font-bold">₹{calculateTotal()}</span> on delivery. Please keep exact amount ready.</p>
+                      <p className="text-xs text-gray-400 mt-2">• COD Available Pan India • Delivery in 3-5 days • Free shipping • Easy returns</p>
                    </div>
                  </div>
                )}
