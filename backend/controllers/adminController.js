@@ -5,12 +5,49 @@ const mongoose = require('mongoose');
 const mockData = require('../utils/mockData');
 const { sendAdminConfirmation } = require('../utils/sendEmail');
 
-// @desc Get all orders (admin)
+// @desc Get all orders (admin) - mock returns sample + dynamic orders so admin never sees empty
 exports.getAllOrders = async (req, res, next) => {
   try {
     if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
+      const mockOrdersStore = require('../utils/mockOrdersStore');
+      const stored = mockOrdersStore.getAll();
       const { mockData: orderMock } = require('./orderController');
-      return res.status(200).json({ success: true, count: orderMock.orders.length, data: orderMock.orders });
+      // Merge stored + in-memory orderMock
+      const seen = new Set(stored.map(o => String(o._id)));
+      orderMock.orders.forEach(o => {
+        if (!seen.has(String(o._id))) stored.push(o);
+      });
+      // Sample orders for demo when no dynamic orders yet
+      const sampleOrders = stored.length ? [] : [
+        {
+          _id: '6a9f1b36ff6e5ee79c9b36b5',
+          user: { _id: 'mock_user1', name: 'Rahul Sharma', email: 'rahul@example.com' },
+          userEmail: 'rahul@example.com',
+          userName: 'Rahul Sharma',
+          items: [{ product: '6a9b8883c4a92a5ddf7d5f05', name: 'Premium Wireless Headphones', quantity: 1, price: 199.99, image: '/images/product1.png' }],
+          shippingAddress: { street: '123 MG Road', city: 'Mumbai', state: 'MH', zipCode: '400001', country: 'India', phone: '9876543210', fullName: 'Rahul Sharma', email: 'rahul@example.com' },
+          paymentMethod: 'cod',
+          paymentInfo: { id: 'COD- demo1', status: 'pending', method: 'cod' },
+          totalPrice: 199.99,
+          status: 'Processing',
+          createdAt: new Date(Date.now() - 1000*60*60*2).toISOString()
+        },
+        {
+          _id: '6a9f1b36ff6e5ee79c9b36b6',
+          user: { _id: 'mock_user2', name: 'Priya Mehta', email: 'priya@example.com' },
+          userEmail: 'priya@example.com',
+          userName: 'Priya Mehta',
+          items: [{ product: '6a9b8883c4a92a5ddf7d5f06', name: 'Luxury Classic Watch', quantity: 1, price: 299.99, image: '/images/product2.png' }],
+          shippingAddress: { street: '45 Park Street', city: 'Delhi', state: 'DL', zipCode: '110001', country: 'India', phone: '9876543211', fullName: 'Priya Mehta', email: 'priya@example.com' },
+          paymentMethod: 'card',
+          paymentInfo: { id: 'card_demo2', status: 'paid', method: 'card' },
+          totalPrice: 299.99,
+          status: 'Shipped',
+          createdAt: new Date(Date.now() - 1000*60*60*5).toISOString()
+        }
+      ];
+      const allOrders = [...stored, ...sampleOrders];
+      return res.status(200).json({ success: true, count: allOrders.length, data: allOrders });
     }
     const orders = await Order.find().populate('user', 'name email').populate('items.product', 'name').sort('-createdAt');
     res.status(200).json({ success: true, count: orders.length, data: orders });
@@ -25,11 +62,13 @@ exports.updateOrderStatus = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Invalid status' });
     }
     if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
-      const { mockData: orderMock } = require('./orderController');
-      const order = orderMock.orders.find(o => String(o._id) === String(req.params.id));
+      const mockOrdersStore = require('../utils/mockOrdersStore');
+      const all = mockOrdersStore.getAll();
+      const order = all.find(o => String(o._id) === String(req.params.id));
       if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
       order.status = status;
       if (status === 'Delivered') order.deliveredAt = new Date().toISOString();
+      mockOrdersStore.save(all);
       // Send email to customer
       const email = order.userEmail || order.shippingAddress?.email || order.user?.email;
       const phone = order.shippingAddress?.phone;
@@ -54,10 +93,12 @@ exports.confirmOrder = async (req, res, next) => {
   try {
     const { email, phone } = req.body; // optional override
     if (global.USE_MOCK_DB || mongoose.connection.readyState !== 1) {
-      const { mockData: orderMock } = require('./orderController');
-      const order = orderMock.orders.find(o => String(o._id) === String(req.params.id));
+      const mockOrdersStore = require('../utils/mockOrdersStore');
+      const all = mockOrdersStore.getAll();
+      const order = all.find(o => String(o._id) === String(req.params.id));
       if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
       order.status = 'Processing';
+      mockOrdersStore.save(all);
       const toEmail = email || order.userEmail || order.shippingAddress?.email || order.user?.email;
       const toPhone = phone || order.shippingAddress?.phone;
       const toName = order.userName || order.user?.name || 'Customer';

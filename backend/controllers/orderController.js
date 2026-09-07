@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const mongoose = require('mongoose');
 const mockData = { orders: [] }; // simple in-memory mock for Vercel demo without DB
 const { sendOrderConfirmation } = require('../utils/sendEmail');
+const mockOrdersStore = require('../utils/mockOrdersStore');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -66,6 +67,7 @@ exports.createOrder = async (req, res, next) => {
                 createdAt: new Date().toISOString(),
             };
             mockData.orders.push(mockOrder);
+            mockOrdersStore.add(mockOrder);
             // Send confirmation email (mock logs, non-blocking)
             const email = req.user.email || shippingAddress?.email;
             if (email) {
