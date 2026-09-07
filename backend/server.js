@@ -28,7 +28,7 @@ app.use(helmet({
             scriptSrc: ["'self'"],
             styleSrc: ["'self'", "https:", "'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:", "https://res.cloudinary.com", "https://via.placeholder.com"],
-            connectSrc: ["'self'", process.env.FRONTEND_URL || "http://localhost:5173", "https://*.vercel.app"],
+            connectSrc: ["'self'", process.env.FRONTEND_URL || "http://localhost:5173", "https://*.vercel.app", "https://znmart.shop", "https://www.znmart.shop", "https://*.znmart.shop"],
             frameAncestors: ["'self'"],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
@@ -40,17 +40,18 @@ app.use(helmet({
 if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'zn_mart_super_secret_dev_key_2026')) {
     console.warn('WARNING: JWT_SECRET is not set or is default value – set a strong secret in production!');
 }
-const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, process.env.FRONTEND_URL.replace('localhost','127.0.0.1')] : [];
+const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, process.env.FRONTEND_URL.replace('localhost','127.0.0.1'), 'https://znmart.shop', 'https://www.znmart.shop'] : ['https://znmart.shop', 'https://www.znmart.shop'];
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, curl, Postman)
         if (!origin) return callback(null, true);
         const isLocal = origin.includes('localhost') || origin.includes('127.0.0.1');
-        const isAllowed = allowedOrigins.includes(origin) || /vercel\.app$/.test(origin) || isLocal;
+        const isZnmart = /znmart\.shop$/.test(origin);
+        const isAllowed = allowedOrigins.includes(origin) || /vercel\.app$/.test(origin) || isZnmart || isLocal;
         if (isAllowed) return callback(null, true);
         if (allowedOrigins.length === 0) {
-            // Demo mode: allow localhost/vercel only, reject others
-            if (isLocal || /vercel\.app$/.test(origin)) return callback(null, true);
+            // Demo mode: allow localhost/vercel/znmart only, reject others
+            if (isLocal || /vercel\.app$/.test(origin) || isZnmart) return callback(null, true);
             return callback(new Error('Not allowed by CORS'));
         }
         return callback(new Error('Not allowed by CORS'));
