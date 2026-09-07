@@ -68,10 +68,24 @@ const AdminDashboard = () => {
     try {
       const token = JSON.parse(localStorage.getItem('user'))?.token;
       await axios.put(`/api/admin/orders/${orderId}/status`, { status: newStatus }, { headers: { Authorization: `Bearer ${token}` } });
-      toast.success(`Order marked as ${newStatus}`);
+      toast.success(`Order marked as ${newStatus}${newStatus !== 'Processing' ? ' & email sent from znmart07@gmail.com' : ''}`);
       fetchAdminData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update');
+    }
+  };
+
+  const handleConfirmOrder = async (orderId) => {
+    try {
+      const token = JSON.parse(localStorage.getItem('user'))?.token;
+      const order = orders.find(o => o._id === orderId);
+      const email = order?.userEmail || order?.user?.email || order?.shippingAddress?.email;
+      const phone = order?.shippingAddress?.phone;
+      const res = await axios.post(`/api/admin/orders/${orderId}/confirm`, { email, phone }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success(res.data.message || 'Confirmation sent from znmart07@gmail.com');
+      fetchAdminData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send confirmation');
     }
   };
 
@@ -196,9 +210,15 @@ const AdminDashboard = () => {
                               <td className="px-4 py-3 text-right font-bold"><Price amount={order.totalPrice} /></td>
                               <td className="px-4 py-3 text-center"><span className={`text-xs font-bold px-2 py-1 rounded-full ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : order.status === 'Shipped' ? 'bg-blue-100 text-blue-700' : order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{order.status}</span></td>
                               <td className="px-4 py-3 text-center">
-                                <select value={order.status} onChange={(e) => handleStatusChange(order._id, e.target.value)} className="border rounded-lg px-2 py-1 text-xs font-bold bg-white">
-                                  <option>Processing</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option>
-                                </select>
+                                <div className="flex items-center gap-1 justify-center">
+                                  <select value={order.status} onChange={(e) => handleStatusChange(order._id, e.target.value)} className="border rounded-lg px-2 py-1 text-xs font-bold bg-white">
+                                    <option>Processing</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option>
+                                  </select>
+                                  <button onClick={() => handleConfirmOrder(order._id)} title="Confirm & send email from znmart07@gmail.com" className="bg-green-600 hover:bg-green-700 text-white p-1.5 rounded-lg">
+                                    <Mail size={14} />
+                                  </button>
+                                </div>
+                                <div className="text-xs text-gray-400 mt-1">{order.shippingAddress?.phone || ''}</div>
                               </td>
                             </tr>
                           ))}

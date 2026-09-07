@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const mongoose = require('mongoose');
 const mockData = { orders: [] }; // simple in-memory mock for Vercel demo without DB
+const { sendOrderConfirmation } = require('../utils/sendEmail');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -50,6 +51,8 @@ exports.createOrder = async (req, res, next) => {
             const mockOrder = {
                 _id: new mongoose.Types.ObjectId().toString(),
                 user: req.user._id || req.user.id,
+                userEmail: req.user.email,
+                userName: req.user.name,
                 items,
                 shippingAddress,
                 paymentMethod: method,
@@ -63,6 +66,11 @@ exports.createOrder = async (req, res, next) => {
                 createdAt: new Date().toISOString(),
             };
             mockData.orders.push(mockOrder);
+            // Send confirmation email (mock logs, non-blocking)
+            const email = req.user.email || shippingAddress?.email;
+            if (email) {
+                sendOrderConfirmation(mockOrder, email, req.user.name).catch(() => {});
+            }
             return res.status(201).json({ success: true, data: mockOrder });
         }
 
@@ -79,11 +87,20 @@ exports.createOrder = async (req, res, next) => {
             totalPrice: totalPrice || itemsPrice || 0
         });
 
+        // Send confirmation email from znmart07@gmail.com
+        try {
+            const User = require('../models/User');
+            const user = await User.findById(order.user).select('name email');
+            const email = user?.email || req.user.email;
+            if (email) await sendOrderConfirmation(order, email, user?.name || req.user.name);
+        } catch (e) { console.error('Order email failed', e.message); }
+
         res.status(201).json({ success: true, data: order });
     } catch (err) {
         next(err);
     }
 };
+exports.mockData = mockData;
 
 // @desc    Get logged in user orders
 // @route   GET /api/orders/myorders

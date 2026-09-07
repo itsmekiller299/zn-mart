@@ -65,6 +65,9 @@ const Checkout = () => {
         state: shipping.city,
         zipCode: shipping.zipCode,
         country: shipping.country,
+        phone: shipping.phone,
+        fullName: shipping.fullName,
+        email: user.email,
       };
       const totalPrice = Number(calculateTotal());
       const payload = {
