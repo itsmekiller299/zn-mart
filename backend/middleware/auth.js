@@ -20,19 +20,27 @@ exports.protect = async (req, res, next) => {
         const jwtSecret = process.env.JWT_SECRET || 'zn_mart_super_secret_dev_key_2026';
         const decoded = jwt.verify(token, jwtSecret);
 
-        // Mock DB fallback: if no DB connection, construct admin user from token payload
+        // Fix: mock_admin_id token must work even when DB is connected (Vercel serverless)
+        // Without this, User.findById('mock_admin_id') throws CastError -> 401
+        if (String(decoded.id) === 'mock_admin_id') {
+            req.user = {
+                _id: decoded.id,
+                name: decoded.name || 'Admin User',
+                email: decoded.email || 'admin@znmart.com',
+                role: 'admin'
+            };
+            return next();
+        }
+
+        // Mock DB fallback: if no DB connection, construct user from token payload
         // This allows add-product to work on Vercel demo without real MongoDB
         if (global.USE_MOCK_DB || require('mongoose').connection.readyState !== 1) {
             req.user = {
                 _id: decoded.id,
                 name: decoded.name || 'Admin User',
-                email: decoded.email || 'admin@znmart.com',
-                role: decoded.role || 'admin'
+                email: decoded.email || decoded.email || 'admin@znmart.com',
+                role: decoded.role || 'user'
             };
-            // If token was issued via mock login, ensure admin role
-            if (String(decoded.id) === 'mock_admin_id') {
-                req.user.role = 'admin';
-            }
             return next();
         }
 
